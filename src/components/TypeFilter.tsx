@@ -1,4 +1,7 @@
 import { typeColors } from '@/utils/typeColors';
+import { motion } from 'framer-motion';
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
+import { primarySpring } from '@/utils/motion';
 
 interface TypeFilterProps {
   selectedType: string | null;
@@ -6,6 +9,7 @@ interface TypeFilterProps {
 }
 
 export function TypeFilter({ selectedType, onSelectType }: TypeFilterProps) {
+  const prefersReducedMotion = usePrefersReducedMotion();
   const types = Object.keys(typeColors);
 
   return (
@@ -17,15 +21,23 @@ export function TypeFilter({ selectedType, onSelectType }: TypeFilterProps) {
         <button
           type="button"
           onClick={() => onSelectType(null)}
-          className={`flex shrink-0 items-center justify-center p-[1.5px] clip-notch-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary ${
+          className={`relative flex shrink-0 items-center justify-center p-[1.5px] clip-notch-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary ${
             selectedType === null
               ? 'bg-slate-800 dark:bg-slate-200'
               : 'bg-border dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-500'
           }`}
           aria-label="Show all Pokémon types"
         >
+          {selectedType === null && (
+            <motion.div
+              layoutId={prefersReducedMotion ? undefined : "type-filter-active"}
+              className="absolute inset-0 z-0 bg-slate-800 dark:bg-slate-200 clip-notch-sm"
+              transition={primarySpring}
+            />
+          )}
+
           <span
-            className={`flex items-center gap-1.5 clip-notch-sm px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors duration-150 ${
+            className={`relative z-10 flex items-center gap-1.5 clip-notch-sm px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors duration-150 ${
               selectedType === null
                 ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900'
                 : 'bg-surface text-slate-600 dark:bg-slate-800 dark:text-slate-400'
@@ -45,15 +57,23 @@ export function TypeFilter({ selectedType, onSelectType }: TypeFilterProps) {
               key={type}
               type="button"
               onClick={() => onSelectType(type)}
-              className={`flex shrink-0 items-center justify-center p-[1.5px] clip-notch-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary ${
+              className={`relative flex shrink-0 items-center justify-center p-[1.5px] clip-notch-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary ${
                 isSelected
                   ? `bg-gradient-to-r ${theme.gradient}`
                   : 'bg-border dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-500'
               }`}
               aria-label={`Filter by ${theme.name} type`}
             >
+              {isSelected && (
+                <motion.div
+                  layoutId={prefersReducedMotion ? undefined : "type-filter-active"}
+                  className={`absolute inset-0 z-0 bg-gradient-to-r ${theme.gradient} clip-notch-sm`}
+                  transition={primarySpring}
+                />
+              )}
+
               <span
-                className={`flex items-center gap-1.5 clip-notch-sm px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors duration-150 ${
+                className={`relative z-10 flex items-center gap-1.5 clip-notch-sm px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors duration-150 ${
                   isSelected
                     ? `bg-gradient-to-r ${theme.gradient} text-white`
                     : 'bg-surface text-slate-600 dark:bg-slate-800 dark:text-slate-400'

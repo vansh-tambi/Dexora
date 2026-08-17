@@ -1,11 +1,16 @@
+import type React from 'react';
 import { typeColors } from '@/utils/typeColors';
 import { PokeBall } from './PokeBall';
+import { motion } from 'framer-motion';
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
+import { primarySpring } from '@/utils/motion';
 
 interface PokemonCardProps {
   id: number | string;
   name: string;
   image: string;
   types: string[];
+  index?: number;
   totalStats?: number;
   isFavorite?: boolean;
   onToggleFavorite?: (e: React.MouseEvent) => void;
@@ -17,11 +22,13 @@ export function PokemonCard({
   name,
   image,
   types,
+  index = 0,
   totalStats = 0,
   isFavorite = false,
   onToggleFavorite,
   onClick,
 }: PokemonCardProps) {
+  const prefersReducedMotion = usePrefersReducedMotion();
   const formattedId = `#${String(id).padStart(3, '0')}`;
   
   // Get primary type color theme
@@ -36,9 +43,24 @@ export function PokemonCard({
     onToggleFavorite?.(e);
   };
 
+  // Rotation alternating: +0.6deg for even, -0.6deg for odd index
+  const hoverRotation = index % 2 === 0 ? 0.6 : -0.6;
+
   return (
-    <div
-      className={`group relative p-[1.5px] clip-notch transition-all duration-200 hover:-translate-y-1 hover:shadow-soft-hover focus-within:ring-2 focus-within:ring-primary ${
+    <motion.div
+      layout={!prefersReducedMotion}
+      whileHover={
+        prefersReducedMotion
+          ? { scale: 1.01 }
+          : { y: -7, scale: 1.025, rotate: hoverRotation }
+      }
+      whileTap={
+        prefersReducedMotion
+          ? { scale: 0.99 }
+          : { scale: 0.97 }
+      }
+      transition={primarySpring}
+      className={`group relative p-[1.5px] clip-notch focus-within:ring-2 focus-within:ring-primary ${
         isHighStat
           ? 'bg-gradient-to-br from-amber-400 via-pink-400 to-blue-400'
           : 'bg-border dark:bg-slate-700'
@@ -53,7 +75,7 @@ export function PokemonCard({
       <button
         type="button"
         onClick={onClick}
-        className="relative z-10 flex w-full flex-col overflow-hidden bg-surface p-5 text-left clip-notch dark:bg-slate-800 focus:outline-none"
+        className="relative z-10 flex w-full flex-col overflow-hidden bg-surface p-5 text-left clip-notch dark:bg-slate-800 focus:outline-none cursor-pointer"
         aria-label={`View details for ${name}`}
       >
         {/* Holographic foil overlay (only for high stats) */}
@@ -90,14 +112,16 @@ export function PokemonCard({
         <div className="relative mb-4 mt-2 flex h-28 w-full items-center justify-center">
           {/* Ambient Glow */}
           <div 
-            className={`absolute inset-0 m-auto h-20 w-20 rounded-full bg-gradient-to-br opacity-25 blur-xl transition-opacity duration-200 group-hover:opacity-40 ${theme.gradient}`}
+            className={`absolute inset-0 m-auto h-20 w-20 rounded-full bg-gradient-to-br opacity-25 blur-xl transition-all duration-300 group-hover:scale-110 group-hover:opacity-40 ${theme.gradient}`}
             aria-hidden="true"
           />
           
-          <img
+          {/* Shared Element Image Morphing */}
+          <motion.img
+            layoutId={prefersReducedMotion ? undefined : `pokemon-image-${id}`}
             src={image}
             alt={name}
-            className="relative z-10 h-full w-full object-contain drop-shadow-md transition-transform duration-200 group-hover:scale-105"
+            className="relative z-10 h-full w-full object-contain drop-shadow-md"
             loading="lazy"
           />
         </div>
@@ -137,6 +161,6 @@ export function PokemonCard({
           </div>
         </div>
       </button>
-    </div>
+    </motion.div>
   );
 }

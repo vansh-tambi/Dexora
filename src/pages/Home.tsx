@@ -12,6 +12,7 @@ import { getPokemonDetail, getPokemonByType, getPokemonList } from '@/services/p
 import type { Pokemon, PokemonListItem } from '@/types/pokemon';
 import { PokemonApiError } from '@/utils/errors';
 import { Sun, Moon } from 'lucide-react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 
 export function Home() {
   const { name } = useParams();
@@ -361,12 +362,15 @@ export function Home() {
   };
 
   const gridProps = getGridProps();
+  const { scrollY } = useScroll();
+  const headerPadding = useTransform(scrollY, [0, 80], ['1.25rem', '0.75rem']);
 
   return (
     <div className="min-h-screen bg-transparent text-slate-800 dark:text-slate-100 transition-colors duration-300">
       {/* Sticky Header */}
-      <header
-        className={`sticky top-0 z-40 py-4 transition-all duration-300 ${
+      <motion.header
+        style={{ paddingTop: headerPadding, paddingBottom: headerPadding }}
+        className={`sticky top-0 z-40 transition-colors duration-300 ${
           isScrolled
             ? 'bg-appBg/85 border-b border-border shadow-soft backdrop-blur-md'
             : 'bg-transparent border-b border-transparent'
@@ -428,7 +432,7 @@ export function Home() {
             <TypeFilter selectedType={selectedType} onSelectType={handleSelectType} />
           </div>
         </div>
-      </header>
+      </motion.header>
 
       {/* Main Grid Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -480,17 +484,20 @@ export function Home() {
       </main>
 
       {/* Pokémon Detail Modal Layer */}
-      {name && (
-        <PokemonModal
-          pokemon={modalPokemon}
-          isLoading={modalLoading}
-          error={modalError}
-          isFavorite={isFavorite(name)}
-          onToggleFavorite={() => toggleFavorite(name)}
-          onClose={() => navigate('/')}
-          onRetry={handleModalRetry}
-        />
-      )}
+      <AnimatePresence>
+        {name && (
+          <PokemonModal
+            key="detail-modal"
+            pokemon={modalPokemon}
+            isLoading={modalLoading}
+            error={modalError}
+            isFavorite={isFavorite(name)}
+            onToggleFavorite={() => toggleFavorite(name)}
+            onClose={() => navigate('/')}
+            onRetry={handleModalRetry}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

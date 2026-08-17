@@ -1,3 +1,7 @@
+import { motion } from 'framer-motion';
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
+import { primarySpring } from '@/utils/motion';
+
 interface PokeBallProps {
   variant?: 'branding' | 'favorite' | 'empty' | 'error';
   active?: boolean;
@@ -11,6 +15,8 @@ export function PokeBall({
   className = '',
   size = 24,
 }: PokeBallProps) {
+  const prefersReducedMotion = usePrefersReducedMotion();
+
   // Compute color palettes based on variant and active state
   let strokeColor = '#0F172A'; // Slate 900
   let topFill = '#E63946';     // Pokémon Red
@@ -50,14 +56,25 @@ export function PokeBall({
     centerButtonFill = '#FFFFFF';
   }
 
+  const isFavoriteCatch = variant === 'favorite' && active;
+
   return (
-    <svg
+    <motion.svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 100 100"
       width={size}
       height={size}
       className={`select-none ${className}`}
       aria-hidden="true"
+      animate={
+        isFavoriteCatch && !prefersReducedMotion
+          ? {
+              scale: [1, 1.3, 1],
+              rotate: [0, -15, 15, 0],
+            }
+          : { scale: 1, rotate: 0 }
+      }
+      transition={primarySpring}
     >
       {/* Outer Shell Ring */}
       <circle
@@ -128,6 +145,6 @@ export function PokeBall({
           strokeLinejoin="round"
         />
       )}
-    </svg>
+    </motion.svg>
   );
 }

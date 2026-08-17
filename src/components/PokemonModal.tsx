@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { X, Scale, Ruler } from 'lucide-react';
 import type { Pokemon } from '@/types/pokemon';
 import { PokemonApiError } from '@/utils/errors';
 import { typeColors } from '@/utils/typeColors';
 import { ErrorState } from './ErrorState';
 import { PokeBall } from './PokeBall';
+import { motion } from 'framer-motion';
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
+import { primarySpring } from '@/utils/motion';
 
 interface PokemonModalProps {
   pokemon: Pokemon | null;
@@ -39,30 +42,31 @@ export function PokemonModal({
 }: PokemonModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
-  const [animate, setAnimate] = useState(false);
-
-  // Trigger stat bar transition animation on mount or when pokemon changes
-  useEffect(() => {
-    if (pokemon) {
-      const t = setTimeout(() => setAnimate(true), 100);
-      return () => {
-        clearTimeout(t);
-        setAnimate(false);
-      };
-    }
-  }, [pokemon]);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   // Capture previous active element on mount and lock background scroll
   useEffect(() => {
     previousActiveElement.current = document.activeElement as HTMLElement;
+
+    // Lock body scroll
+    const originalStyle = window.getComputedStyle(document.body).overflow;
     document.body.style.overflow = 'hidden';
+
+    // Focus modal container
+    if (modalRef.current) {
+      modalRef.current.focus();
+    }
+
     return () => {
-      document.body.style.overflow = '';
-      previousActiveElement.current?.focus();
+      // Restore scroll and focus
+      document.body.style.overflow = originalStyle;
+      if (previousActiveElement.current) {
+        previousActiveElement.current.focus();
+      }
     };
   }, []);
 
-  // Close on Escape key press
+  // Handle Escape key to close
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -73,60 +77,52 @@ export function PokemonModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  // Focus trap
+  // Focus Trapping logic
   useEffect(() => {
-    if (isLoading || error || !pokemon || !modalRef.current) return;
+    const handleFocusTrap = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !modalRef.current) return;
 
-    const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-    const focusableElements = modalRef.current.querySelectorAll(focusableSelector);
-    if (focusableElements.length === 0) return;
+      const focusables = modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusables.length === 0) return;
 
-    const firstElement = focusableElements[0] as HTMLElement;
-    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
+      const firstElement = focusables[0];
+      const lastElement = focusables[focusables.length - 1];
 
       if (e.shiftKey) {
         if (document.activeElement === firstElement) {
-          lastElement.focus();
           e.preventDefault();
+          lastElement.focus();
         }
       } else {
         if (document.activeElement === lastElement) {
-          firstElement.focus();
           e.preventDefault();
+          firstElement.focus();
         }
       }
     };
 
-    // Auto-focus close button on open
-    firstElement.focus();
+    window.addEventListener('keydown', handleFocusTrap);
+    return () => window.removeEventListener('keydown', handleFocusTrap);
+  }, []);
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isLoading, error, pokemon]);
-
-  // Render detail skeleton
+  // Loading Skeleton View
   const renderSkeleton = () => (
-    <div className="flex flex-col gap-6 animate-pulse p-6">
-      {/* Artwork & Header Skeleton */}
-      <div className="flex flex-col items-center justify-center py-6">
-        <div className="h-40 w-40 rounded-full bg-slate-200 dark:bg-slate-800" />
-        <div className="mt-6 h-8 w-48 rounded-lg bg-slate-200 dark:bg-slate-800" />
-        <div className="mt-3 flex gap-2">
-          <div className="h-6 w-16 rounded-full bg-slate-200 dark:bg-slate-800" />
-          <div className="h-6 w-16 rounded-full bg-slate-200 dark:bg-slate-800" />
-        </div>
+    <div className="flex flex-col items-center p-8 animate-pulse">
+      <div className="h-44 w-44 rounded-full bg-slate-200 dark:bg-slate-800" />
+      <div className="mt-4 h-4 w-16 rounded bg-slate-200 dark:bg-slate-800" />
+      <div className="mt-2 h-8 w-48 rounded bg-slate-200 dark:bg-slate-800" />
+      <div className="mt-4 flex gap-2">
+        <div className="h-6 w-16 rounded-full bg-slate-200 dark:bg-slate-800" />
+        <div className="h-6 w-16 rounded-full bg-slate-200 dark:bg-slate-800" />
       </div>
-      {/* Physical properties Skeleton */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="h-16 rounded-2xl bg-slate-100 dark:bg-slate-800/50" />
-        <div className="h-16 rounded-2xl bg-slate-100 dark:bg-slate-800/50" />
+      <div className="mt-8 grid w-full grid-cols-2 gap-4">
+        <div className="h-20 rounded-2xl bg-slate-200 dark:bg-slate-800" />
+        <div className="h-20 rounded-2xl bg-slate-200 dark:bg-slate-800" />
       </div>
-      {/* Stats Skeleton */}
-      <div className="space-y-3">
-        {Array.from({ length: 6 }).map((_, i) => (
+      <div className="mt-6 w-full space-y-3">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
           <div key={i} className="flex items-center gap-4">
             <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-800" />
             <div className="h-3 flex-1 rounded-full bg-slate-200 dark:bg-slate-800" />
@@ -147,20 +143,40 @@ export function PokemonModal({
   const typeTheme = typeColors[primaryType] || typeColors.normal;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 p-0 backdrop-blur-sm transition-opacity duration-300 md:items-center md:p-4"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 p-0 backdrop-blur-sm md:items-center md:p-4 overflow-hidden"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      <div
+      <motion.div
         ref={modalRef}
-        className="relative flex w-full flex-col overflow-y-auto bg-surface shadow-soft transition-all duration-300 scrollbar-none
-          h-[85vh] rounded-t-[2rem] md:h-auto md:max-h-[90vh] md:max-w-2xl md:rounded-[2rem]
-          translate-y-0 opacity-100 animate-fade-up md:animate-none md:scale-100 motion-reduce:transition-none motion-reduce:animate-none"
+        initial={
+          prefersReducedMotion
+            ? { opacity: 0 }
+            : { opacity: 0, scale: 0.95, y: 30 }
+        }
+        animate={
+          prefersReducedMotion
+            ? { opacity: 1 }
+            : { opacity: 1, scale: 1, y: 0 }
+        }
+        exit={
+          prefersReducedMotion
+            ? { opacity: 0 }
+            : { opacity: 0, scale: 0.95, y: 30 }
+        }
+        transition={primarySpring}
+        className="relative flex w-full flex-col overflow-y-auto overflow-x-hidden bg-surface shadow-soft scrollbar-none
+          h-[85vh] rounded-t-[2rem] md:h-auto md:max-h-[90vh] md:max-w-2xl md:rounded-[2rem]"
+        tabIndex={-1}
       >
-        {/* Sticky Close Button Header */}
+        {/* Sticky Close & Favorite Header */}
         <div className="sticky top-0 z-20 flex items-center justify-between p-4 bg-surface/80 backdrop-blur-md">
           {pokemon && (
             <button
@@ -210,10 +226,12 @@ export function PokemonModal({
                 aria-hidden="true"
               />
               
-              <img
+              {/* Shared Element Image Morphing */}
+              <motion.img
+                layoutId={prefersReducedMotion ? undefined : `pokemon-image-${pokemon.id}`}
                 src={pokemon.sprites.other['official-artwork'].front_default || ''}
                 alt={pokemon.name}
-                className="relative z-10 h-40 w-40 object-contain drop-shadow-md transition-transform duration-300 hover:scale-105"
+                className="relative z-10 h-40 w-40 object-contain drop-shadow-md"
               />
 
               {/* Technical ID & Gen Pill */}
@@ -303,13 +321,13 @@ export function PokemonModal({
               </div>
             </div>
 
-            {/* Base Stats Section with Animations */}
+            {/* Base Stats Section with Staggered Spring Reveal */}
             <div className="mb-6">
               <h3 className="mb-4 text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">
                 Base Stats
               </h3>
               <div className="space-y-3.5">
-                {pokemon.stats.map(({ stat, base_stat }) => {
+                {pokemon.stats.map(({ stat, base_stat }, idx) => {
                   const percent = Math.min((base_stat / 255) * 100, 100);
                   const statNameMap: Record<string, string> = {
                     hp: 'HP',
@@ -328,11 +346,14 @@ export function PokemonModal({
                       </span>
                       
                       {/* Progress Bar Track */}
-                      <div className="relative h-2.5 flex-1 rounded-full bg-slate-100 dark:bg-slate-800">
-                        <div
-                          className={`absolute left-0 top-0 h-full rounded-full bg-gradient-to-r transition-all duration-700 ease-out motion-reduce:transition-none ${typeTheme.gradient}`}
-                          style={{
-                            width: animate ? `${percent}%` : '0%',
+                      <div className="relative h-2.5 flex-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <motion.div
+                          className={`absolute left-0 top-0 h-full rounded-full bg-gradient-to-r ${typeTheme.gradient}`}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${percent}%` }}
+                          transition={{
+                            ...primarySpring,
+                            delay: prefersReducedMotion ? 0 : idx * 0.05,
                           }}
                         />
                       </div>
@@ -370,7 +391,7 @@ export function PokemonModal({
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
