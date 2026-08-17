@@ -331,16 +331,16 @@ export function Home() {
     <div className="min-h-screen bg-appBg text-slate-800 dark:text-slate-100 transition-colors duration-300">
       {/* Sticky Header */}
       <header
-        className={`sticky top-0 z-40 transition-all duration-300 ${
+        className={`sticky top-0 z-40 py-4 transition-all duration-300 ${
           isScrolled
-            ? 'bg-appBg/85 border-b border-border shadow-soft backdrop-blur-md py-4'
-            : 'bg-transparent py-6'
+            ? 'bg-appBg/85 border-b border-border shadow-soft backdrop-blur-md'
+            : 'bg-transparent border-b border-transparent'
         }`}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             {/* Branding & Toggles Row */}
-            <div className="flex items-center justify-between w-full md:w-auto">
+            <div className="flex items-center justify-between w-full md:w-auto gap-6">
               <div className="flex items-center gap-2">
                 <span className="text-2xl" role="img" aria-label="Pokéball">
                   🔴
