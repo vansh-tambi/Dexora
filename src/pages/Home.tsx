@@ -4,13 +4,14 @@ import { SearchBar } from '@/components/SearchBar';
 import { TypeFilter } from '@/components/TypeFilter';
 import { PokemonGrid } from '@/components/PokemonGrid';
 import { PokemonModal } from '@/components/PokemonModal';
+import { PokeBall } from '@/components/PokeBall';
 import { usePokemonList } from '@/hooks/usePokemonList';
 import { useTheme } from '@/hooks/useTheme';
 import { useFavorites } from '@/hooks/useFavorites';
 import { getPokemonDetail, getPokemonByType, getPokemonList } from '@/services/pokemonApi';
 import type { Pokemon, PokemonListItem } from '@/types/pokemon';
 import { PokemonApiError } from '@/utils/errors';
-import { Sun, Moon, Heart } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 
 export function Home() {
   const { name } = useParams();
@@ -362,7 +363,7 @@ export function Home() {
   const gridProps = getGridProps();
 
   return (
-    <div className="min-h-screen bg-appBg text-slate-800 dark:text-slate-100 transition-colors duration-300">
+    <div className="min-h-screen bg-transparent text-slate-800 dark:text-slate-100 transition-colors duration-300">
       {/* Sticky Header */}
       <header
         className={`sticky top-0 z-40 py-4 transition-all duration-300 ${
@@ -376,9 +377,7 @@ export function Home() {
             {/* Branding & Toggles Row */}
             <div className="flex items-center justify-between w-full md:w-auto gap-6">
               <div className="flex items-center gap-2">
-                <span className="text-2xl" role="img" aria-label="Pokéball">
-                  🔴
-                </span>
+                <PokeBall variant="branding" size={28} />
                 <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white font-heading">
                   Dexora
                 </h1>
@@ -397,7 +396,13 @@ export function Home() {
                   }`}
                   aria-label={isFavoritesMode ? 'View default Pokémon list' : 'View favorite Pokémon'}
                 >
-                  <Heart className={`h-5 w-5 ${isFavoritesMode ? 'fill-red-500 text-red-500' : ''}`} />
+                  <PokeBall
+                    key={isFavoritesMode ? 'fav-switch-active' : 'fav-switch-inactive'}
+                    variant="favorite"
+                    active={isFavoritesMode}
+                    size={20}
+                    className={isFavoritesMode ? 'animate-catch text-red-500' : 'text-slate-500 dark:text-slate-400'}
+                  />
                 </button>
 
                 {/* Theme Toggle Button */}

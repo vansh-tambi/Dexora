@@ -1,4 +1,4 @@
-import { AlertTriangle } from 'lucide-react';
+import { PokeBall } from './PokeBall';
 
 interface ErrorStateProps {
   message: string;
@@ -9,8 +9,8 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
     <div className="flex w-full flex-col items-center justify-center py-16 text-center">
       {/* Soft Icon Container */}
-      <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-red-50 text-red-400 dark:bg-red-900/20 dark:text-red-400">
-        <AlertTriangle className="h-10 w-10" strokeWidth={1.5} />
+      <div className="mb-6 flex items-center justify-center text-red-500 dark:text-red-400">
+        <PokeBall variant="error" size={80} />
       </div>
       
       <h3 className="mb-2 text-xl font-bold text-slate-800 dark:text-slate-100 font-heading">

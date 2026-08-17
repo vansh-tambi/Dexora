@@ -76,6 +76,7 @@ export function PokemonGrid({
               name={item.name}
               image={image}
               types={types}
+              totalStats={item.stats.reduce((acc, s) => acc + s.base_stat, 0)}
               isFavorite={favorites.includes(item.name.toLowerCase())}
               onToggleFavorite={() => onToggleFavorite(item.name)}
               onClick={() => onCardClick?.(item.name)}

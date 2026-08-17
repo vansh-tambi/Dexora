@@ -1,11 +1,12 @@
 import { typeColors } from '@/utils/typeColors';
-import { Heart } from 'lucide-react';
+import { PokeBall } from './PokeBall';
 
 interface PokemonCardProps {
   id: number | string;
   name: string;
   image: string;
   types: string[];
+  totalStats?: number;
   isFavorite?: boolean;
   onToggleFavorite?: (e: React.MouseEvent) => void;
   onClick?: () => void;
@@ -16,15 +17,19 @@ export function PokemonCard({
   name,
   image,
   types,
+  totalStats = 0,
   isFavorite = false,
   onToggleFavorite,
   onClick,
 }: PokemonCardProps) {
   const formattedId = `#${String(id).padStart(3, '0')}`;
   
-  // Get the primary type for the ambient glow effect
+  // Get primary type color theme
   const primaryType = types[0]?.toLowerCase();
   const theme = typeColors[primaryType] || typeColors.normal;
+
+  // Determine if it is a high-stat collector card
+  const isHighStat = totalStats >= 500;
 
   const handleToggleFav = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -32,73 +37,106 @@ export function PokemonCard({
   };
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group relative flex w-full flex-col overflow-hidden rounded-3xl bg-surface p-5 text-left shadow-soft transition-all duration-200 hover:scale-[1.02] hover:shadow-soft-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-appBg dark:focus:ring-offset-slate-900 motion-reduce:transition-none motion-reduce:hover:scale-100"
-      aria-label={`View details for ${name}`}
+    <div
+      className={`group relative p-[1.5px] clip-notch transition-all duration-200 hover:-translate-y-1 hover:shadow-soft-hover focus-within:ring-2 focus-within:ring-primary ${
+        isHighStat
+          ? 'bg-gradient-to-br from-amber-400 via-pink-400 to-blue-400'
+          : 'bg-border dark:bg-slate-700'
+      }`}
     >
-      {/* ID Pill */}
-      <div className="absolute left-5 top-5 z-10 rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-        {formattedId}
-      </div>
+      {/* 1px hover outline overlay */}
+      <div
+        className={`absolute inset-0 z-0 clip-notch opacity-0 transition-opacity duration-200 group-hover:opacity-100 bg-gradient-to-br ${theme.gradient}`}
+        aria-hidden="true"
+      />
 
-      {/* Favorite Button */}
       <button
         type="button"
-        onClick={handleToggleFav}
-        className="absolute right-3 top-3 z-20 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-primary dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-red-400"
-        aria-label={isFavorite ? `Remove ${name} from favorites` : `Add ${name} to favorites`}
+        onClick={onClick}
+        className="relative z-10 flex w-full flex-col overflow-hidden bg-surface p-5 text-left clip-notch dark:bg-slate-800 focus:outline-none"
+        aria-label={`View details for ${name}`}
       >
-        <Heart
-          key={isFavorite ? 'fav' : 'unfav'}
-          className={`h-5 w-5 transition-transform duration-200 ${
-            isFavorite
-              ? 'animate-heart-pop fill-red-500 text-red-500'
-              : 'hover:scale-110 active:scale-90 text-slate-400 dark:text-slate-500'
-          }`}
-          strokeWidth={2}
-        />
-      </button>
+        {/* Holographic foil overlay (only for high stats) */}
+        {isHighStat && (
+          <div
+            className="pointer-events-none absolute inset-0 z-10 animate-holo opacity-40 mix-blend-color-dodge dark:opacity-20"
+            aria-hidden="true"
+          />
+        )}
 
-      {/* Artwork Area with Ambient Glow */}
-      <div className="relative mb-6 mt-4 flex h-32 w-full items-center justify-center">
-        {/* Radial Glow Layer */}
-        <div 
-          className={`absolute inset-0 m-auto h-24 w-24 rounded-full bg-gradient-to-br opacity-40 blur-2xl transition-opacity duration-300 group-hover:opacity-60 ${theme.gradient} motion-reduce:transition-none`}
-          aria-hidden="true"
-        />
-        
-        {/* Pokémon Artwork */}
-        <img
-          src={image}
-          alt={name}
-          className="relative z-10 h-full w-full object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-          loading="lazy"
-        />
-      </div>
+        {/* Top bar: ID and Favorite toggle */}
+        <div className="z-20 flex w-full items-center justify-between">
+          <span className="font-heading text-xs font-bold tracking-wider text-slate-400 dark:text-slate-500">
+            {formattedId}
+          </span>
 
-      {/* Info Area */}
-      <div className="flex flex-col items-center w-full">
-        <h2 className="mb-3 text-xl font-bold capitalize tracking-tight text-slate-800 dark:text-slate-100 font-heading truncate max-w-full w-full text-center">
-          {name}
-        </h2>
-        
-        <div className="flex flex-wrap justify-center gap-2">
-          {types.map((type) => {
-            const typeTheme = typeColors[type.toLowerCase()] || typeColors.normal;
-            return (
-              <span
-                key={type}
-                className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wider ${typeTheme.badgeBg} ${typeTheme.badgeText}`}
-              >
-                <span aria-hidden="true" className="text-sm">{typeTheme.icon}</span>
-                {type}
-              </span>
-            );
-          })}
+          <button
+            type="button"
+            onClick={handleToggleFav}
+            className="rounded-full p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/60 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+            aria-label={isFavorite ? `Remove ${name} from favorites` : `Add ${name} to favorites`}
+          >
+            <PokeBall
+              key={isFavorite ? 'fav-active' : 'fav-inactive'}
+              variant="favorite"
+              active={isFavorite}
+              size={20}
+              className={isFavorite ? 'animate-catch' : 'text-slate-400 hover:text-red-500 dark:text-slate-500'}
+            />
+          </button>
         </div>
-      </div>
-    </button>
+
+        {/* Artwork Area with Ambient Glow */}
+        <div className="relative mb-4 mt-2 flex h-28 w-full items-center justify-center">
+          {/* Ambient Glow */}
+          <div 
+            className={`absolute inset-0 m-auto h-20 w-20 rounded-full bg-gradient-to-br opacity-25 blur-xl transition-opacity duration-200 group-hover:opacity-40 ${theme.gradient}`}
+            aria-hidden="true"
+          />
+          
+          <img
+            src={image}
+            alt={name}
+            className="relative z-10 h-full w-full object-contain drop-shadow-md transition-transform duration-200 group-hover:scale-105"
+            loading="lazy"
+          />
+        </div>
+
+        {/* Content Area */}
+        <div className="flex flex-col items-center w-full text-center">
+          <h2 className="mb-2.5 font-heading text-lg font-bold capitalize tracking-tight text-slate-800 dark:text-slate-100 truncate w-full">
+            {name}
+          </h2>
+          
+          {/* Notched Type Badges */}
+          <div className="flex justify-center gap-1.5 w-full flex-wrap">
+            {types.map((type) => {
+              const typeTheme = typeColors[type.toLowerCase()] || typeColors.normal;
+              return (
+                <span
+                  key={type}
+                  className={`flex items-center gap-1 clip-notch-sm p-[1px] ${
+                    isHighStat
+                      ? 'bg-gradient-to-r from-amber-400 to-pink-500'
+                      : `bg-gradient-to-r ${typeTheme.gradient}`
+                  }`}
+                >
+                  <span
+                    className={`flex items-center gap-1 clip-notch-sm px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${
+                      isHighStat
+                        ? 'bg-slate-900 text-amber-300 dark:bg-slate-800'
+                        : `${typeTheme.badgeBg} ${typeTheme.badgeText}`
+                    }`}
+                  >
+                    <span aria-hidden="true" className="text-xs">{typeTheme.icon}</span>
+                    {type}
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      </button>
+    </div>
   );
 }

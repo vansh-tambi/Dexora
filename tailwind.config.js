@@ -9,7 +9,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-        heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+        heading: ['"Fredoka"', 'sans-serif'],
       },
       colors: {
         appBg: 'var(--color-app-bg)',

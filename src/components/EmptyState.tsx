@@ -1,4 +1,4 @@
-import { Search } from 'lucide-react';
+import { PokeBall } from './PokeBall';
 import type { ReactNode } from 'react';
 
 interface EmptyStateProps {
@@ -11,8 +11,8 @@ export function EmptyState({ title, subtitle, icon }: EmptyStateProps) {
   return (
     <div className="flex w-full flex-col items-center justify-center py-16 text-center">
       {/* Soft Icon Container */}
-      <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
-        {icon || <Search className="h-10 w-10" strokeWidth={1.5} />}
+      <div className="mb-6 flex items-center justify-center text-slate-400 dark:text-slate-500">
+        {icon || <PokeBall variant="empty" size={80} />}
       </div>
       
       <h3 className="mb-2 text-xl font-bold text-slate-800 dark:text-slate-100 font-heading">
