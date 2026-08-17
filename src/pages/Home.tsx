@@ -7,8 +7,8 @@ import { PokemonModal } from '@/components/PokemonModal';
 import { usePokemonList } from '@/hooks/usePokemonList';
 import { useTheme } from '@/hooks/useTheme';
 import { useFavorites } from '@/hooks/useFavorites';
-import { getPokemonDetail, getPokemonByType } from '@/services/pokemonApi';
-import type { Pokemon } from '@/types/pokemon';
+import { getPokemonDetail, getPokemonByType, getPokemonList } from '@/services/pokemonApi';
+import type { Pokemon, PokemonListItem } from '@/types/pokemon';
 import { PokemonApiError } from '@/utils/errors';
 import { Sun, Moon, Heart } from 'lucide-react';
 
@@ -22,7 +22,19 @@ export function Home() {
     const t = setTimeout(() => setIsFirstMount(false), 1200);
     return () => clearTimeout(t);
   }, []);
+  const [masterList, setMasterList] = useState<PokemonListItem[]>([]);
 
+  useEffect(() => {
+    async function loadMasterList() {
+      try {
+        const data = await getPokemonList(2000, 0);
+        setMasterList(data.results);
+      } catch (err) {
+        // Silent fallback
+      }
+    }
+    loadMasterList();
+  }, []);
   // 1. Theme and Favorites Hooks
   const { theme, toggleTheme } = useTheme();
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
@@ -68,7 +80,7 @@ export function Home() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -120,17 +132,39 @@ export function Home() {
       setSearchLoading(true);
       setSearchError(null);
       try {
-        const detail = await getPokemonDetail(searchQuery);
+        const query = searchQuery.toLowerCase().trim();
+        
+        // If master list is empty, fetch it inline
+        let currentMaster = masterList;
+        if (currentMaster.length === 0) {
+          const data = await getPokemonList(2000, 0);
+          currentMaster = data.results;
+          setMasterList(currentMaster);
+        }
+
+        // Find matches containing the search string
+        const matches = currentMaster.filter((item) =>
+          item.name.toLowerCase().includes(query)
+        );
+
+        if (matches.length === 0) {
+          if (active) {
+            setSearchPokemon([]);
+          }
+          return;
+        }
+
+        // Fetch details in parallel for matching names, capped at first 40 items
+        const details = await Promise.all(
+          matches.slice(0, 40).map((item) => getPokemonDetail(item.name))
+        );
+
         if (active) {
-          setSearchPokemon([detail]);
+          setSearchPokemon(details);
         }
       } catch (err) {
         if (active) {
-          if (err instanceof PokemonApiError && err.status === 404) {
-            setSearchPokemon([]); // Triggers EmptyState
-          } else {
-            setSearchError(err instanceof Error ? err : new Error('An error occurred during search.'));
-          }
+          setSearchError(err instanceof Error ? err : new Error('Search failed'));
         }
       } finally {
         if (active) {
@@ -144,7 +178,7 @@ export function Home() {
     return () => {
       active = false;
     };
-  }, [searchQuery]);
+  }, [searchQuery, masterList]);
 
   // Filter Effect
   useEffect(() => {
