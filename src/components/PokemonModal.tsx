@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { X, Scale, Ruler, Heart } from 'lucide-react';
-import { Pokemon } from '@/types/pokemon';
+import type { Pokemon } from '@/types/pokemon';
 import { PokemonApiError } from '@/utils/errors';
 import { typeColors } from '@/utils/typeColors';
 import { ErrorState } from './ErrorState';

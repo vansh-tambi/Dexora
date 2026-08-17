@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Pokemon } from '@/types/pokemon';
+import type { Pokemon } from '@/types/pokemon';
 import { getPokemonList, getPokemonDetail } from '@/services/pokemonApi';
 import { PokemonApiError } from '@/utils/errors';
 

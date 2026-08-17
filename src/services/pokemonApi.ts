@@ -1,4 +1,4 @@
-import { Pokemon, PokemonListResponse, PokemonListItem, PokemonTypeResponse } from '@/types/pokemon';
+import type { Pokemon, PokemonListResponse, PokemonListItem, PokemonTypeResponse } from '@/types/pokemon';
 import { PokemonApiError } from '@/utils/errors';
 
 const BASE_URL = 'https://pokeapi.co/api/v2';

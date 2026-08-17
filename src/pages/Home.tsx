@@ -8,7 +8,7 @@ import { usePokemonList } from '@/hooks/usePokemonList';
 import { useTheme } from '@/hooks/useTheme';
 import { useFavorites } from '@/hooks/useFavorites';
 import { getPokemonDetail, getPokemonByType } from '@/services/pokemonApi';
-import { Pokemon } from '@/types/pokemon';
+import type { Pokemon } from '@/types/pokemon';
 import { PokemonApiError } from '@/utils/errors';
 import { Sun, Moon, Heart } from 'lucide-react';
 
@@ -159,7 +159,7 @@ export function Home() {
       setFilterLoading(true);
       setFilterError(null);
       try {
-        const list = await getPokemonByType(selectedType);
+        const list = await getPokemonByType(selectedType as string);
         const details = await Promise.all(
           list.slice(0, 40).map((item) => getPokemonDetail(item.name))
         );
@@ -249,7 +249,7 @@ export function Home() {
       setModalLoading(true);
       setModalError(null);
       try {
-        const detail = await getPokemonDetail(name);
+        const detail = await getPokemonDetail(name as string);
         if (active) {
           setModalPokemon(detail);
         }

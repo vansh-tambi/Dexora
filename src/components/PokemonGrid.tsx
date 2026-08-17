@@ -1,4 +1,4 @@
-import { Pokemon } from '@/types/pokemon';
+import type { Pokemon } from '@/types/pokemon';
 import { PokemonCard } from './PokemonCard';
 import { PokemonGridSkeleton } from './LoadingSkeleton';
 import { ErrorState } from './ErrorState';
@@ -10,6 +10,7 @@ interface PokemonGridProps {
   error: Error | null;
   favorites: string[];
   onToggleFavorite: (name: string) => void;
+  isFirstMount: boolean;
   onRetry?: () => void;
   onCardClick?: (name: string) => void;
 }
@@ -20,6 +21,7 @@ export function PokemonGrid({
   error,
   favorites,
   onToggleFavorite,
+  isFirstMount,
   onRetry,
   onCardClick,
 }: PokemonGridProps) {
@@ -59,11 +61,15 @@ export function PokemonGrid({
         return (
           <div
             key={item.id}
-            className="opacity-0 animate-fade-up"
-            style={{
-              animationDelay: `${Math.min(index * 50, 600)}ms`,
-              animationFillMode: 'forwards',
-            }}
+            className={isFirstMount ? "opacity-0 animate-fade-up" : "opacity-100"}
+            style={
+              isFirstMount
+                ? {
+                    animationDelay: `${Math.min(index * 50, 600)}ms`,
+                    animationFillMode: 'forwards',
+                  }
+                : {}
+            }
           >
             <PokemonCard
               id={item.id}
