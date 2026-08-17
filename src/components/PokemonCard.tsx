@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type React from 'react';
 import { typeColors } from '@/utils/typeColors';
 import { PokeBall } from './PokeBall';
@@ -17,7 +18,7 @@ interface PokemonCardProps {
   onClick?: () => void;
 }
 
-export function PokemonCard({
+export const PokemonCard = memo(function PokemonCard({
   id,
   name,
   image,
@@ -163,4 +164,4 @@ export function PokemonCard({
       </button>
     </motion.div>
   );
-}
+});

@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { SearchBar } from '@/components/SearchBar';
 import { TypeFilter } from '@/components/TypeFilter';
 import { PokemonGrid } from '@/components/PokemonGrid';
-import { PokemonModal } from '@/components/PokemonModal';
 import { PokeBall } from '@/components/PokeBall';
+
+const PokemonModal = lazy(() =>
+  import('@/components/PokemonModal').then((m) => ({ default: m.PokemonModal }))
+);
 import { usePokemonList } from '@/hooks/usePokemonList';
 import { useTheme } from '@/hooks/useTheme';
 import { useFavorites } from '@/hooks/useFavorites';
@@ -280,16 +283,21 @@ export function Home() {
       return;
     }
 
+    const controller = new AbortController();
     let active = true;
+
     async function fetchModalDetail() {
       setModalLoading(true);
       setModalError(null);
       try {
-        const detail = await getPokemonDetail(name as string);
+        const detail = await getPokemonDetail(name as string, controller.signal);
         if (active) {
           setModalPokemon(detail);
         }
       } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
         if (active) {
           setModalError(
             err instanceof PokemonApiError
@@ -308,6 +316,7 @@ export function Home() {
 
     return () => {
       active = false;
+      controller.abort();
     };
   }, [name]);
 
@@ -486,16 +495,18 @@ export function Home() {
       {/* Pokémon Detail Modal Layer */}
       <AnimatePresence>
         {name && (
-          <PokemonModal
-            key="detail-modal"
-            pokemon={modalPokemon}
-            isLoading={modalLoading}
-            error={modalError}
-            isFavorite={isFavorite(name)}
-            onToggleFavorite={() => toggleFavorite(name)}
-            onClose={() => navigate('/')}
-            onRetry={handleModalRetry}
-          />
+          <Suspense fallback={null}>
+            <PokemonModal
+              key="detail-modal"
+              pokemon={modalPokemon}
+              isLoading={modalLoading}
+              error={modalError}
+              isFavorite={isFavorite(name)}
+              onToggleFavorite={() => toggleFavorite(name)}
+              onClose={() => navigate('/')}
+              onRetry={handleModalRetry}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
     </div>
