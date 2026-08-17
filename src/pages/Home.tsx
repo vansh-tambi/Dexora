@@ -16,6 +16,13 @@ export function Home() {
   const { name } = useParams();
   const navigate = useNavigate();
 
+  const [isFirstMount, setIsFirstMount] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setIsFirstMount(false), 1200);
+    return () => clearTimeout(t);
+  }, []);
+
   // 1. Theme and Favorites Hooks
   const { theme, toggleTheme } = useTheme();
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
@@ -393,6 +400,7 @@ export function Home() {
           favorites={favorites}
           onToggleFavorite={toggleFavorite}
           onRetry={gridProps.onRetry}
+          isFirstMount={isFirstMount}
           onCardClick={(pokemonName) => navigate(`/pokemon/${pokemonName}`)}
         />
 
