@@ -5,15 +5,27 @@ import { TypeFilter } from '@/components/TypeFilter';
 import { PokemonGrid } from '@/components/PokemonGrid';
 import { PokemonModal } from '@/components/PokemonModal';
 import { usePokemonList } from '@/hooks/usePokemonList';
+import { useTheme } from '@/hooks/useTheme';
+import { useFavorites } from '@/hooks/useFavorites';
 import { getPokemonDetail, getPokemonByType } from '@/services/pokemonApi';
 import { Pokemon } from '@/types/pokemon';
 import { PokemonApiError } from '@/utils/errors';
+import { Sun, Moon, Heart } from 'lucide-react';
 
 export function Home() {
   const { name } = useParams();
   const navigate = useNavigate();
 
-  // 1. DEFAULT mode state (uses paginated list)
+  // 1. Theme and Favorites Hooks
+  const { theme, toggleTheme } = useTheme();
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
+
+  // Active query, filter, and mode states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [isFavoritesMode, setIsFavoritesMode] = useState(false);
+
+  // 2. DEFAULT mode state (uses paginated list)
   const {
     pokemon: defaultPokemon,
     loading: defaultLoading,
@@ -24,21 +36,22 @@ export function Home() {
     retry: retryDefault,
   } = usePokemonList(20);
 
-  // Active query and filter state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<string | null>(null);
-
-  // 2. SEARCH mode state
+  // 3. SEARCH mode state
   const [searchPokemon, setSearchPokemon] = useState<Pokemon[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<Error | null>(null);
 
-  // 3. FILTER mode state
+  // 4. FILTER mode state
   const [filterPokemon, setFilterPokemon] = useState<Pokemon[]>([]);
   const [filterLoading, setFilterLoading] = useState(false);
   const [filterError, setFilterError] = useState<Error | null>(null);
 
-  // 4. MODAL state
+  // 5. FAVORITES mode state
+  const [favPokemon, setFavPokemon] = useState<Pokemon[]>([]);
+  const [favLoading, setFavLoading] = useState(false);
+  const [favError, setFavError] = useState<Error | null>(null);
+
+  // 6. MODAL details state
   const [modalPokemon, setModalPokemon] = useState<Pokemon | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState<PokemonApiError | null>(null);
@@ -55,24 +68,35 @@ export function Home() {
   }, []);
 
   // Determine current active mode for background grid
-  let currentMode: 'DEFAULT' | 'SEARCH' | 'FILTER' = 'DEFAULT';
-  if (searchQuery) {
+  let currentMode: 'DEFAULT' | 'SEARCH' | 'FILTER' | 'FAVORITES' = 'DEFAULT';
+  if (isFavoritesMode) {
+    currentMode = 'FAVORITES';
+  } else if (searchQuery) {
     currentMode = 'SEARCH';
   } else if (selectedType) {
     currentMode = 'FILTER';
   }
 
-  // Handle Search Input (clears filter)
+  // Handle Search Input (clears filters & favorites)
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     if (query) {
       setSelectedType(null);
+      setIsFavoritesMode(false);
     }
   };
 
-  // Handle Type Filter click (clears search)
+  // Handle Type Filter click (clears search & favorites)
   const handleSelectType = (type: string | null) => {
     setSelectedType(type);
+    setSearchQuery('');
+    setIsFavoritesMode(false);
+  };
+
+  // Handle Favorites toggle filter (clears type & search)
+  const handleToggleFavoritesMode = () => {
+    setIsFavoritesMode((prev) => !prev);
+    setSelectedType(null);
     setSearchQuery('');
   };
 
@@ -129,8 +153,6 @@ export function Home() {
       setFilterError(null);
       try {
         const list = await getPokemonByType(selectedType);
-        // Resolve detailed data in parallel for a clean render.
-        // Cap it to 40 items to avoid rate limiting or blocking the client.
         const details = await Promise.all(
           list.slice(0, 40).map((item) => getPokemonDetail(item.name))
         );
@@ -155,6 +177,57 @@ export function Home() {
       active = false;
     };
   }, [selectedType]);
+
+  // Favorites Details Resolution Effect
+  useEffect(() => {
+    if (!isFavoritesMode) {
+      setFavPokemon([]);
+      setFavError(null);
+      return;
+    }
+
+    let active = true;
+    async function resolveFavorites() {
+      if (favorites.length === 0) {
+        setFavPokemon([]);
+        return;
+      }
+      setFavLoading(true);
+      setFavError(null);
+      try {
+        const details = await Promise.all(
+          favorites.map((favName) => getPokemonDetail(favName))
+        );
+        if (active) {
+          setFavPokemon(details);
+        }
+      } catch (err) {
+        if (active) {
+          setFavError(err instanceof Error ? err : new Error('Failed to load favorites details.'));
+        }
+      } finally {
+        if (active) {
+          setFavLoading(false);
+        }
+      }
+    }
+
+    resolveFavorites();
+
+    return () => {
+      active = false;
+    };
+  }, [isFavoritesMode, favorites]);
+
+  // Favorites Error Retry Helper
+  const handleFavoritesRetry = () => {
+    setFavLoading(true);
+    setFavError(null);
+    Promise.all(favorites.map((favName) => getPokemonDetail(favName)))
+      .then((details) => setFavPokemon(details))
+      .catch((err) => setFavError(err instanceof Error ? err : new Error('Failed to load favorites details.')))
+      .finally(() => setFavLoading(false));
+  };
 
   // Modal Fetching Effect
   useEffect(() => {
@@ -213,6 +286,13 @@ export function Home() {
   // Map modes to active values
   const getGridProps = () => {
     switch (currentMode) {
+      case 'FAVORITES':
+        return {
+          pokemon: favPokemon,
+          loading: favLoading,
+          error: favError,
+          onRetry: handleFavoritesRetry,
+        };
       case 'SEARCH':
         return {
           pokemon: searchPokemon,
@@ -241,7 +321,7 @@ export function Home() {
   const gridProps = getGridProps();
 
   return (
-    <div className="min-h-screen bg-appBg">
+    <div className="min-h-screen bg-appBg text-slate-800 dark:text-slate-100 transition-colors duration-300">
       {/* Sticky Header */}
       <header
         className={`sticky top-0 z-40 transition-all duration-300 ${
@@ -252,17 +332,46 @@ export function Home() {
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            {/* Branding */}
-            <div className="flex items-center gap-2">
-              <span className="text-2xl" role="img" aria-label="Pokéball">
-                🔴
-              </span>
-              <h1 className="text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white font-heading">
-                Dexora
-              </h1>
+            {/* Branding & Toggles Row */}
+            <div className="flex items-center justify-between w-full md:w-auto">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl" role="img" aria-label="Pokéball">
+                  🔴
+                </span>
+                <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white font-heading">
+                  Dexora
+                </h1>
+              </div>
+
+              {/* Header Action Controls */}
+              <div className="flex items-center gap-2">
+                {/* Favorites Mode Switch */}
+                <button
+                  type="button"
+                  onClick={handleToggleFavoritesMode}
+                  className={`rounded-full p-2.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-appBg dark:focus:ring-offset-slate-900 motion-reduce:transition-none ${
+                    isFavoritesMode
+                      ? 'bg-red-50 text-red-500 dark:bg-red-950/30 dark:text-red-400'
+                      : 'bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
+                  }`}
+                  aria-label={isFavoritesMode ? 'View default Pokémon list' : 'View favorite Pokémon'}
+                >
+                  <Heart className={`h-5 w-5 ${isFavoritesMode ? 'fill-red-500 text-red-500' : ''}`} />
+                </button>
+
+                {/* Theme Toggle Button */}
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="rounded-full bg-slate-100 p-2.5 text-slate-500 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-appBg dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-offset-slate-900"
+                  aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+                >
+                  {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
 
-            {/* Controls */}
+            {/* Controls Search Field */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center w-full md:w-auto">
               <SearchBar value={searchQuery} onSearch={handleSearch} />
             </div>
@@ -281,6 +390,8 @@ export function Home() {
           pokemon={gridProps.pokemon}
           loading={gridProps.loading}
           error={gridProps.error}
+          favorites={favorites}
+          onToggleFavorite={toggleFavorite}
           onRetry={gridProps.onRetry}
           onCardClick={(pokemonName) => navigate(`/pokemon/${pokemonName}`)}
         />
@@ -327,6 +438,8 @@ export function Home() {
           pokemon={modalPokemon}
           isLoading={modalLoading}
           error={modalError}
+          isFavorite={isFavorite(name)}
+          onToggleFavorite={() => toggleFavorite(name)}
           onClose={() => navigate('/')}
           onRetry={handleModalRetry}
         />

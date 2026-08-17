@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { X, Scale, Ruler } from 'lucide-react';
+import { X, Scale, Ruler, Heart } from 'lucide-react';
 import { Pokemon } from '@/types/pokemon';
 import { PokemonApiError } from '@/utils/errors';
 import { typeColors } from '@/utils/typeColors';
@@ -9,6 +9,8 @@ interface PokemonModalProps {
   pokemon: Pokemon | null;
   isLoading: boolean;
   error: PokemonApiError | null;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
   onClose: () => void;
   onRetry: () => void;
 }
@@ -17,6 +19,8 @@ export function PokemonModal({
   pokemon,
   isLoading,
   error,
+  isFavorite = false,
+  onToggleFavorite,
   onClose,
   onRetry,
 }: PokemonModalProps) {
@@ -144,11 +148,29 @@ export function PokemonModal({
           translate-y-0 opacity-100 animate-fade-up md:animate-none md:scale-100 motion-reduce:transition-none motion-reduce:animate-none"
       >
         {/* Sticky Close Button Header */}
-        <div className="sticky top-0 z-20 flex justify-end p-4 bg-surface/80 backdrop-blur-md">
+        <div className="sticky top-0 z-20 flex items-center justify-between p-4 bg-surface/80 backdrop-blur-md">
+          {pokemon && (
+            <button
+              type="button"
+              onClick={onToggleFavorite}
+              className="rounded-full bg-slate-100 p-2 text-slate-500 hover:bg-slate-200 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-red-400"
+              aria-label={isFavorite ? `Remove ${pokemon.name} from favorites` : `Add ${pokemon.name} to favorites`}
+            >
+              <Heart
+                key={isFavorite ? 'fav-modal' : 'unfav-modal'}
+                className={`h-5 w-5 ${
+                  isFavorite
+                    ? 'animate-heart-pop fill-red-500 text-red-500'
+                    : 'text-slate-400 dark:text-slate-500'
+                }`}
+                strokeWidth={2}
+              />
+            </button>
+          )}
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full bg-slate-100 p-2 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="ml-auto rounded-full bg-slate-100 p-2 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
             aria-label="Close Pokémon details"
           >
             <X className="h-5 w-5" />

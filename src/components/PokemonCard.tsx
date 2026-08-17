@@ -1,19 +1,35 @@
 import { typeColors } from '@/utils/typeColors';
+import { Heart } from 'lucide-react';
 
 interface PokemonCardProps {
   id: number | string;
   name: string;
   image: string;
   types: string[];
+  isFavorite?: boolean;
+  onToggleFavorite?: (e: React.MouseEvent) => void;
   onClick?: () => void;
 }
 
-export function PokemonCard({ id, name, image, types, onClick }: PokemonCardProps) {
+export function PokemonCard({
+  id,
+  name,
+  image,
+  types,
+  isFavorite = false,
+  onToggleFavorite,
+  onClick,
+}: PokemonCardProps) {
   const formattedId = `#${String(id).padStart(3, '0')}`;
   
   // Get the primary type for the ambient glow effect
   const primaryType = types[0]?.toLowerCase();
   const theme = typeColors[primaryType] || typeColors.normal;
+
+  const handleToggleFav = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleFavorite?.(e);
+  };
 
   return (
     <button
@@ -26,6 +42,24 @@ export function PokemonCard({ id, name, image, types, onClick }: PokemonCardProp
       <div className="absolute left-5 top-5 z-10 rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
         {formattedId}
       </div>
+
+      {/* Favorite Button */}
+      <button
+        type="button"
+        onClick={handleToggleFav}
+        className="absolute right-3 top-3 z-20 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-primary dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-red-400"
+        aria-label={isFavorite ? `Remove ${name} from favorites` : `Add ${name} to favorites`}
+      >
+        <Heart
+          key={isFavorite ? 'fav' : 'unfav'}
+          className={`h-5 w-5 transition-transform duration-200 ${
+            isFavorite
+              ? 'animate-heart-pop fill-red-500 text-red-500'
+              : 'hover:scale-110 active:scale-90 text-slate-400 dark:text-slate-500'
+          }`}
+          strokeWidth={2}
+        />
+      </button>
 
       {/* Artwork Area with Ambient Glow */}
       <div className="relative mb-6 mt-4 flex h-32 w-full items-center justify-center">

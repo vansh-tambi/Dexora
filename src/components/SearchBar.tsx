@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -10,13 +11,14 @@ interface SearchBarProps {
 export function SearchBar({ value, onSearch }: SearchBarProps) {
   const [localValue, setLocalValue] = useState(value);
   const debouncedValue = useDebounce(localValue, 300);
+  const navigate = useNavigate();
 
   // Sync local input value if parent updates `value` prop (e.g., clearing the search)
   useEffect(() => {
     setLocalValue(value);
   }, [value]);
 
-  // Trigger search callback when debounced value changes
+  // Trigger search callback when debounced value changes (filters the background grid)
   useEffect(() => {
     onSearch(debouncedValue);
   }, [debouncedValue, onSearch]);
@@ -25,8 +27,16 @@ export function SearchBar({ value, onSearch }: SearchBarProps) {
     setLocalValue('');
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = localValue.trim().toLowerCase();
+    if (query) {
+      navigate(`/pokemon/${query}`);
+    }
+  };
+
   return (
-    <div className="relative w-full max-w-md">
+    <form onSubmit={handleSubmit} className="relative w-full max-w-md">
       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 dark:text-slate-500">
         <Search className="h-5 w-5" strokeWidth={2} />
       </div>
@@ -49,6 +59,6 @@ export function SearchBar({ value, onSearch }: SearchBarProps) {
           <X className="h-5 w-5" strokeWidth={2} />
         </button>
       )}
-    </div>
+    </form>
   );
 }

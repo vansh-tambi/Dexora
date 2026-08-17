@@ -8,6 +8,8 @@ interface PokemonGridProps {
   pokemon: Pokemon[];
   loading: boolean;
   error: Error | null;
+  favorites: string[];
+  onToggleFavorite: (name: string) => void;
   onRetry?: () => void;
   onCardClick?: (name: string) => void;
 }
@@ -16,6 +18,8 @@ export function PokemonGrid({
   pokemon,
   loading,
   error,
+  favorites,
+  onToggleFavorite,
   onRetry,
   onCardClick,
 }: PokemonGridProps) {
@@ -39,7 +43,7 @@ export function PokemonGrid({
       <div className="flex min-h-[400px] w-full items-center justify-center rounded-3xl bg-surface p-8 shadow-soft">
         <EmptyState
           title="No Pokémon Found"
-          subtitle="Try adjusting your search query or selected type filter."
+          subtitle="Explore the list and add some Pokémon to your favorites, or adjust your search filter."
         />
       </div>
     );
@@ -66,6 +70,8 @@ export function PokemonGrid({
               name={item.name}
               image={image}
               types={types}
+              isFavorite={favorites.includes(item.name.toLowerCase())}
+              onToggleFavorite={() => onToggleFavorite(item.name)}
               onClick={() => onCardClick?.(item.name)}
             />
           </div>
