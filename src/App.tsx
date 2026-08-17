@@ -1,11 +1,15 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Home } from './pages/Home';
+import { CustomCursor } from './components/CustomCursor';
 
 function App() {
   return (
     <BrowserRouter>
       {/* 3-Layer Background System */}
       <div className="relative min-h-screen bg-appBg text-slate-800 dark:text-slate-100 transition-colors duration-300 overflow-x-hidden">
+        {/* Custom Pokéball Cursor */}
+        <CustomCursor />
+
         {/* Layer 2: Dot-Grid Texture */}
         <div className="pointer-events-none fixed inset-0 z-0 bg-grid-pattern opacity-100" />
         

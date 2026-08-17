@@ -283,8 +283,7 @@ export function PokemonModal({
 
             {/* Abilities Section */}
             <div className="mb-6">
-              <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
+              <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">
                 Abilities
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -306,8 +305,7 @@ export function PokemonModal({
 
             {/* Base Stats Section with Animations */}
             <div className="mb-6">
-              <h3 className="mb-4 text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
+              <h3 className="mb-4 text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">
                 Base Stats
               </h3>
               <div className="space-y-3.5">
@@ -336,10 +334,7 @@ export function PokemonModal({
                           style={{
                             width: animate ? `${percent}%` : '0%',
                           }}
-                        >
-                          {/* Inner Stats Sheen Overlay */}
-                          <div className="absolute inset-0 bg-white/20 bg-gradient-to-r from-transparent via-white/35 to-transparent animate-shimmer rounded-full" />
-                        </div>
+                        />
                       </div>
                       
                       {/* Stat Value */}
@@ -354,8 +349,7 @@ export function PokemonModal({
 
             {/* Moves Section */}
             <div>
-              <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
+              <h3 className="mb-3 text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">
                 Moves
               </h3>
               <div className="flex flex-wrap gap-1.5">
