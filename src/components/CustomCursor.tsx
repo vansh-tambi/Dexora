@@ -23,17 +23,13 @@ export function CustomCursor() {
     // Add global class to hide default cursor
     document.body.classList.add('custom-cursor-active');
 
-    let mouseX = 0;
-    let mouseY = 0;
-    let cursorX = 0;
-    let cursorY = 0;
     let isHovered = false;
     let isHidden = true;
-    let animationFrameId: number;
+    let rAFId: number | null = null;
 
     const onMouseMove = (e: MouseEvent) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
 
       if (isHidden) {
         isHidden = false;
@@ -65,6 +61,17 @@ export function CustomCursor() {
           }
         }
       }
+
+      // 1:1 Instant hardware tracking without lerp delay
+      if (rAFId) {
+        cancelAnimationFrame(rAFId);
+      }
+
+      rAFId = requestAnimationFrame(() => {
+        if (cursorRef.current) {
+          cursorRef.current.style.transform = `translate3d(${mouseX - 12}px, ${mouseY - 12}px, 0)`;
+        }
+      });
     };
 
     const onMouseDown = () => {
@@ -92,27 +99,11 @@ export function CustomCursor() {
     };
 
     // Listeners
-    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mouseup', onMouseUp);
     document.addEventListener('mouseleave', onMouseLeave);
     document.addEventListener('mouseenter', onMouseEnter);
-
-    // Hardware-accelerated position loop (Lerp)
-    const updatePosition = () => {
-      const ease = 0.22; // Smooth tracking coefficient
-      cursorX += (mouseX - cursorX) * ease;
-      cursorY += (mouseY - cursorY) * ease;
-
-      if (cursorRef.current) {
-        // Offset center: ball is 24px wide, center alignment is -12px
-        cursorRef.current.style.transform = `translate3d(${cursorX - 12}px, ${cursorY - 12}px, 0)`;
-      }
-
-      animationFrameId = requestAnimationFrame(updatePosition);
-    };
-
-    animationFrameId = requestAnimationFrame(updatePosition);
 
     // Clean up
     return () => {
@@ -122,7 +113,9 @@ export function CustomCursor() {
       window.removeEventListener('mouseup', onMouseUp);
       document.removeEventListener('mouseleave', onMouseLeave);
       document.removeEventListener('mouseenter', onMouseEnter);
-      cancelAnimationFrame(animationFrameId);
+      if (rAFId) {
+        cancelAnimationFrame(rAFId);
+      }
     };
   }, [enabled]);
 
@@ -134,7 +127,7 @@ export function CustomCursor() {
       className="custom-cursor-container"
       aria-hidden="true"
     >
-      {/* Inline styles for precise transforms and transitions */}
+      {/* Inline styles for 1:1 instant tracking */}
       <style>{`
         .custom-cursor-container {
           position: fixed;
