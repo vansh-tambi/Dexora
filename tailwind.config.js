@@ -26,6 +26,15 @@ export default {
         'soft': '0 2px 10px rgba(0, 0, 0, 0.05)',
         'soft-hover': '0 4px 20px rgba(0, 0, 0, 0.08)',
       },
+      keyframes: {
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+      },
+      animation: {
+        shimmer: 'shimmer 1.5s infinite',
+      },
     },
   },
   plugins: [],
