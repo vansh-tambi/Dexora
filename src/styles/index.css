@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-app-bg: #FAFAFB;
+    --color-surface: #FFFFFF;
+    --color-primary: #6366F1;
+    --color-muted: #f1f5f9; /* slate-100 */
+    --color-border: #e2e8f0; /* slate-200 */
+  }
+
+  .dark {
+    --color-app-bg: #0F172A;
+    --color-surface: #1E293B;
+    --color-primary: #818CF8;
+    --color-muted: #1e293b; /* slate-800 */
+    --color-border: #334155; /* slate-700 */
+  }
+
+  body {
+    @apply bg-appBg text-slate-900 dark:text-slate-50 antialiased font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
