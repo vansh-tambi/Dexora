@@ -1,13 +1,18 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { SearchBar } from '@/components/SearchBar';
 import { TypeFilter } from '@/components/TypeFilter';
 import { PokemonGrid } from '@/components/PokemonGrid';
+import { PokemonModal } from '@/components/PokemonModal';
 import { usePokemonList } from '@/hooks/usePokemonList';
 import { getPokemonDetail, getPokemonByType } from '@/services/pokemonApi';
 import { Pokemon } from '@/types/pokemon';
 import { PokemonApiError } from '@/utils/errors';
 
 export function Home() {
+  const { name } = useParams();
+  const navigate = useNavigate();
+
   // 1. DEFAULT mode state (uses paginated list)
   const {
     pokemon: defaultPokemon,
@@ -33,6 +38,11 @@ export function Home() {
   const [filterLoading, setFilterLoading] = useState(false);
   const [filterError, setFilterError] = useState<Error | null>(null);
 
+  // 4. MODAL state
+  const [modalPokemon, setModalPokemon] = useState<Pokemon | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState<PokemonApiError | null>(null);
+
   // Scroll detection for sticky header styles
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -44,7 +54,7 @@ export function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Determine current active mode
+  // Determine current active mode for background grid
   let currentMode: 'DEFAULT' | 'SEARCH' | 'FILTER' = 'DEFAULT';
   if (searchQuery) {
     currentMode = 'SEARCH';
@@ -146,6 +156,60 @@ export function Home() {
     };
   }, [selectedType]);
 
+  // Modal Fetching Effect
+  useEffect(() => {
+    if (!name) {
+      setModalPokemon(null);
+      setModalError(null);
+      return;
+    }
+
+    let active = true;
+    async function fetchModalDetail() {
+      setModalLoading(true);
+      setModalError(null);
+      try {
+        const detail = await getPokemonDetail(name);
+        if (active) {
+          setModalPokemon(detail);
+        }
+      } catch (err) {
+        if (active) {
+          setModalError(
+            err instanceof PokemonApiError
+              ? err
+              : new PokemonApiError('Failed to load Pokémon details')
+          );
+        }
+      } finally {
+        if (active) {
+          setModalLoading(false);
+        }
+      }
+    }
+
+    fetchModalDetail();
+
+    return () => {
+      active = false;
+    };
+  }, [name]);
+
+  // Helper to re-attempt fetching detail for the modal on error
+  const handleModalRetry = () => {
+    if (!name) return;
+    setModalError(null);
+    setModalLoading(true);
+    getPokemonDetail(name)
+      .then((p) => setModalPokemon(p))
+      .catch((e) =>
+        setModalError(
+          e instanceof PokemonApiError ? e : new PokemonApiError('Failed to load Pokémon details')
+        )
+      )
+      .finally(() => setModalLoading(false));
+  };
+
   // Map modes to active values
   const getGridProps = () => {
     switch (currentMode) {
@@ -180,7 +244,7 @@ export function Home() {
     <div className="min-h-screen bg-appBg">
       {/* Sticky Header */}
       <header
-        className={`sticky top-0 z-50 transition-all duration-300 ${
+        className={`sticky top-0 z-40 transition-all duration-300 ${
           isScrolled
             ? 'bg-appBg/85 border-b border-border shadow-soft backdrop-blur-md py-4'
             : 'bg-transparent py-6'
@@ -218,7 +282,7 @@ export function Home() {
           loading={gridProps.loading}
           error={gridProps.error}
           onRetry={gridProps.onRetry}
-          onCardClick={(name) => console.log(`Selected Pokémon: ${name}`)}
+          onCardClick={(pokemonName) => navigate(`/pokemon/${pokemonName}`)}
         />
 
         {/* Load More Trigger (Default Mode Only) */}
@@ -256,6 +320,17 @@ export function Home() {
           </div>
         )}
       </main>
+
+      {/* Pokémon Detail Modal Layer */}
+      {name && (
+        <PokemonModal
+          pokemon={modalPokemon}
+          isLoading={modalLoading}
+          error={modalError}
+          onClose={() => navigate('/')}
+          onRetry={handleModalRetry}
+        />
+      )}
     </div>
   );
 }
