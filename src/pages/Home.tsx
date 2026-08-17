@@ -402,7 +402,7 @@ export function Home() {
                 <button
                   type="button"
                   onClick={handleToggleFavoritesMode}
-                  className={`rounded-full p-2.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-appBg dark:focus:ring-offset-slate-900 motion-reduce:transition-none ${
+                  className={`relative rounded-full p-2.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-appBg dark:focus:ring-offset-slate-900 motion-reduce:transition-none ${
                     isFavoritesMode
                       ? 'bg-red-50 text-red-500 dark:bg-red-950/30 dark:text-red-400'
                       : 'bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
@@ -416,6 +416,17 @@ export function Home() {
                     size={20}
                     className={isFavoritesMode ? 'animate-catch text-red-500' : 'text-slate-500 dark:text-slate-400'}
                   />
+                  {favorites.length > 0 && (
+                    <motion.span
+                      key={favorites.length}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                      className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-extrabold text-white shadow-md border border-white dark:border-slate-900"
+                    >
+                      {favorites.length}
+                    </motion.span>
+                  )}
                 </button>
 
                 {/* Theme Toggle Button */}
