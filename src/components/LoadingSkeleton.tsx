@@ -27,7 +27,7 @@ export function LoadingSkeleton() {
 
       {/* Shimmer Effect Overlay */}
       <div 
-        className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent dark:via-white/10" 
+        className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent dark:via-white/10 motion-reduce:animate-none" 
         aria-hidden="true" 
       />
     </div>
@@ -36,7 +36,7 @@ export function LoadingSkeleton() {
 
 export function PokemonGridSkeleton({ count = 10 }: LoadingSkeletonProps) {
   return (
-    <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid w-full grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
       {Array.from({ length: count }).map((_, index) => (
         <LoadingSkeleton key={`skeleton-${index}`} />
       ))}

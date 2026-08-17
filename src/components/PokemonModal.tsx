@@ -21,6 +21,7 @@ export function PokemonModal({
   onRetry,
 }: PokemonModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
   const [animate, setAnimate] = useState(false);
 
   // Trigger stat bar transition animation on mount or when pokemon changes
@@ -34,11 +35,13 @@ export function PokemonModal({
     }
   }, [pokemon]);
 
-  // Prevent background body scroll when modal is open
+  // Capture previous active element on mount and lock background scroll
   useEffect(() => {
+    previousActiveElement.current = document.activeElement as HTMLElement;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = '';
+      previousActiveElement.current?.focus();
     };
   }, []);
 
@@ -138,7 +141,7 @@ export function PokemonModal({
         ref={modalRef}
         className="relative flex w-full flex-col overflow-y-auto bg-surface shadow-soft transition-all duration-300 scrollbar-none
           h-[85vh] rounded-t-[2rem] md:h-auto md:max-h-[90vh] md:max-w-2xl md:rounded-[2rem]
-          translate-y-0 opacity-100 animate-fade-up md:animate-none md:scale-100"
+          translate-y-0 opacity-100 animate-fade-up md:animate-none md:scale-100 motion-reduce:transition-none motion-reduce:animate-none"
       >
         {/* Sticky Close Button Header */}
         <div className="sticky top-0 z-20 flex justify-end p-4 bg-surface/80 backdrop-blur-md">
@@ -174,7 +177,7 @@ export function PokemonModal({
               <img
                 src={pokemon.sprites.other['official-artwork'].front_default || ''}
                 alt={pokemon.name}
-                className="relative z-10 h-44 w-44 object-contain drop-shadow-md transition-transform duration-300 hover:scale-105"
+                className="relative z-10 h-44 w-44 object-contain drop-shadow-md transition-transform duration-300 hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100"
               />
 
               <span className="mt-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -277,7 +280,7 @@ export function PokemonModal({
                       {/* Progress Bar Track */}
                       <div className="relative h-2.5 flex-1 rounded-full bg-slate-100 dark:bg-slate-800">
                         <div
-                          className={`absolute left-0 top-0 h-full rounded-full bg-gradient-to-r transition-all duration-700 ease-out ${typeTheme.gradient}`}
+                          className={`absolute left-0 top-0 h-full rounded-full bg-gradient-to-r transition-all duration-700 ease-out motion-reduce:transition-none ${typeTheme.gradient}`}
                           style={{
                             width: animate ? `${percent}%` : '0%',
                           }}

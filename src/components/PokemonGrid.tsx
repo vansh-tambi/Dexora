@@ -47,7 +47,7 @@ export function PokemonGrid({
 
   // 4. Success State (Grid)
   return (
-    <div className="grid w-full grid-cols-2 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid w-full grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
       {pokemon.map((item, index) => {
         const image = item.sprites.other['official-artwork'].front_default || '';
         const types = item.types.map((t) => t.type.name);

@@ -292,7 +292,7 @@ export function Home() {
               type="button"
               onClick={loadMore}
               disabled={defaultLoading || loadingMore}
-              className="flex items-center gap-2.5 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-appBg disabled:pointer-events-none disabled:opacity-60 dark:focus:ring-offset-slate-900"
+              className="flex items-center gap-2.5 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-appBg disabled:pointer-events-none disabled:opacity-60 dark:focus:ring-offset-slate-900 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             >
               {loadingMore && (
                 <svg

@@ -36,15 +36,15 @@ export function SearchBar({ value, onSearch }: SearchBarProps) {
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
         placeholder="Search Pokémon name or ID..."
-        className="w-full rounded-full border border-border bg-surface py-3 pl-12 pr-12 text-sm text-slate-800 placeholder-slate-400 shadow-soft transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:text-slate-100 dark:placeholder-slate-500"
+        className="w-full rounded-full border border-border bg-surface py-3 pl-12 pr-12 text-sm text-slate-800 placeholder-slate-400 shadow-soft transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary dark:text-slate-100 dark:placeholder-slate-500 dark:focus:ring-offset-slate-900"
       />
 
       {localValue && (
         <button
           type="button"
           onClick={handleClear}
-          className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
-          aria-label="Clear search query"
+          className="absolute inset-y-0 right-3 my-auto flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary dark:text-slate-500 dark:hover:text-slate-300"
+          aria-label="Clear search"
         >
           <X className="h-5 w-5" strokeWidth={2} />
         </button>
