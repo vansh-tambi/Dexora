@@ -1,0 +1,76 @@
+import { Pokemon } from '@/types/pokemon';
+import { PokemonCard } from './PokemonCard';
+import { PokemonGridSkeleton } from './LoadingSkeleton';
+import { ErrorState } from './ErrorState';
+import { EmptyState } from './EmptyState';
+
+interface PokemonGridProps {
+  pokemon: Pokemon[];
+  loading: boolean;
+  error: Error | null;
+  onRetry?: () => void;
+  onCardClick?: (name: string) => void;
+}
+
+export function PokemonGrid({
+  pokemon,
+  loading,
+  error,
+  onRetry,
+  onCardClick,
+}: PokemonGridProps) {
+  // 1. Initial Loading State
+  if (loading && pokemon.length === 0) {
+    return <PokemonGridSkeleton count={10} />;
+  }
+
+  // 2. Error State
+  if (error) {
+    return (
+      <div className="flex min-h-[400px] w-full items-center justify-center rounded-3xl bg-surface p-8 shadow-soft">
+        <ErrorState message={error.message} onRetry={onRetry} />
+      </div>
+    );
+  }
+
+  // 3. Empty State
+  if (pokemon.length === 0) {
+    return (
+      <div className="flex min-h-[400px] w-full items-center justify-center rounded-3xl bg-surface p-8 shadow-soft">
+        <EmptyState
+          title="No Pokémon Found"
+          subtitle="Try adjusting your search query or selected type filter."
+        />
+      </div>
+    );
+  }
+
+  // 4. Success State (Grid)
+  return (
+    <div className="grid w-full grid-cols-2 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      {pokemon.map((item, index) => {
+        const image = item.sprites.other['official-artwork'].front_default || '';
+        const types = item.types.map((t) => t.type.name);
+
+        return (
+          <div
+            key={item.id}
+            className="opacity-0 animate-fade-up"
+            style={{
+              animationDelay: `${Math.min(index * 50, 600)}ms`,
+              animationFillMode: 'forwards',
+            }}
+          >
+            <PokemonCard
+              id={item.id}
+              name={item.name}
+              image={image}
+              types={types}
+              onClick={() => onCardClick?.(item.name)}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
