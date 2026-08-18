@@ -196,7 +196,7 @@ export function CompareModal({
             : { opacity: 0, scale: 0.95, y: 30 }
         }
         transition={primarySpring}
-        className="relative flex w-full flex-col overflow-y-auto overflow-x-hidden bg-surface shadow-soft scrollbar-none h-[90vh] rounded-t-[2rem] md:h-auto md:max-h-[90vh] md:max-w-3xl md:rounded-[2rem] p-6"
+        className="relative flex w-full flex-col overflow-y-auto overflow-x-hidden bg-surface shadow-soft pr-1 sm:pr-2 h-[90vh] rounded-t-[2rem] md:h-auto md:max-h-[90vh] md:max-w-3xl md:rounded-[2rem] p-6"
         tabIndex={-1}
       >
         {/* Header */}

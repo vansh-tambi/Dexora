@@ -154,8 +154,8 @@
 
   /* WebKit themed scrollbars */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
   }
 
   ::-webkit-scrollbar-track {
@@ -165,7 +165,8 @@
   ::-webkit-scrollbar-thumb {
     background-color: #E63946;
     border-radius: 9999px;
-    border: 2px solid var(--color-app-bg);
+    border: 3px solid transparent;
+    background-clip: padding-box;
   }
 
   ::-webkit-scrollbar-thumb:hover {

@@ -174,7 +174,7 @@ export function PokemonModal({
             : { opacity: 0, scale: 0.95, y: 30 }
         }
         transition={primarySpring}
-        className="relative flex w-full flex-col overflow-y-auto overflow-x-hidden bg-surface shadow-soft scrollbar-none
+        className="relative flex w-full flex-col overflow-y-auto overflow-x-hidden bg-surface shadow-soft pr-1 sm:pr-2
           h-[85vh] rounded-t-[2rem] md:h-auto md:max-h-[90vh] md:max-w-2xl md:rounded-[2rem]"
         tabIndex={-1}
       >
