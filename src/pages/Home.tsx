@@ -5,6 +5,9 @@ import { TypeFilter } from '@/components/TypeFilter';
 import { PokemonGrid } from '@/components/PokemonGrid';
 import { PokeBall } from '@/components/PokeBall';
 
+import { SortSelect, type SortOption } from '@/components/SortSelect';
+import { CompareModal } from '@/components/CompareModal';
+
 const PokemonModal = lazy(() =>
   import('@/components/PokemonModal').then((m) => ({ default: m.PokemonModal }))
 );
@@ -14,7 +17,7 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { getPokemonDetail, getPokemonByType, getPokemonList } from '@/services/pokemonApi';
 import type { Pokemon, PokemonListItem } from '@/types/pokemon';
 import { PokemonApiError } from '@/utils/errors';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Swords } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 
 export function Home() {
@@ -44,10 +47,49 @@ export function Home() {
   const { theme, toggleTheme } = useTheme();
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
-  // Active query, filter, and mode states
+  // Active query, filter, sort, and mode states
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [isFavoritesMode, setIsFavoritesMode] = useState(false);
+  const [sortBy, setSortBy] = useState<SortOption>('id-asc');
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [compareP1] = useState<Pokemon | null>(null);
+  const [compareP2] = useState<Pokemon | null>(null);
+
+  const applySorting = (list: Pokemon[]): Pokemon[] => {
+    if (!list || list.length === 0) return [];
+    const copy = [...list];
+    switch (sortBy) {
+      case 'id-asc':
+        return copy.sort((a, b) => Number(a.id) - Number(b.id));
+      case 'id-desc':
+        return copy.sort((a, b) => Number(b.id) - Number(a.id));
+      case 'name-asc':
+        return copy.sort((a, b) => a.name.localeCompare(b.name));
+      case 'name-desc':
+        return copy.sort((a, b) => b.name.localeCompare(a.name));
+      case 'attack-desc':
+        return copy.sort((a, b) => {
+          const aAtk = a.stats.find((s) => s.stat.name === 'attack')?.base_stat || 0;
+          const bAtk = b.stats.find((s) => s.stat.name === 'attack')?.base_stat || 0;
+          return bAtk - aAtk;
+        });
+      case 'speed-desc':
+        return copy.sort((a, b) => {
+          const aSpd = a.stats.find((s) => s.stat.name === 'speed')?.base_stat || 0;
+          const bSpd = b.stats.find((s) => s.stat.name === 'speed')?.base_stat || 0;
+          return bSpd - aSpd;
+        });
+      case 'hp-desc':
+        return copy.sort((a, b) => {
+          const aHp = a.stats.find((s) => s.stat.name === 'hp')?.base_stat || 0;
+          const bHp = b.stats.find((s) => s.stat.name === 'hp')?.base_stat || 0;
+          return bHp - aHp;
+        });
+      default:
+        return copy;
+    }
+  };
 
   // 2. DEFAULT mode state (uses paginated list)
   const {
@@ -370,7 +412,12 @@ export function Home() {
     }
   };
 
-  const gridProps = getGridProps();
+  const rawGridProps = getGridProps();
+  const gridProps = {
+    ...rawGridProps,
+    pokemon: applySorting(rawGridProps.pokemon),
+  };
+
   const { scrollY } = useScroll();
   const headerPadding = useTransform(scrollY, [0, 80], ['1.25rem', '0.75rem']);
 
@@ -398,6 +445,17 @@ export function Home() {
 
               {/* Header Action Controls */}
               <div className="flex items-center gap-2">
+                {/* Compare Mode Launcher */}
+                <button
+                  type="button"
+                  onClick={() => setIsCompareOpen(true)}
+                  className="rounded-full bg-slate-100 p-2.5 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+                  aria-label="Compare Pokémon"
+                  title="Compare Pokémon Statistics"
+                >
+                  <Swords className="h-5 w-5 text-primary" />
+                </button>
+
                 {/* Favorites Mode Switch */}
                 <button
                   type="button"
@@ -441,9 +499,10 @@ export function Home() {
               </div>
             </div>
 
-            {/* Controls Search Field */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center w-full md:w-auto">
+            {/* Controls Search Field & Sort Select */}
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
               <SearchBar value={searchQuery} onSearch={handleSearch} />
+              <SortSelect value={sortBy} onChange={setSortBy} />
             </div>
           </div>
 
@@ -518,6 +577,19 @@ export function Home() {
               onRetry={handleModalRetry}
             />
           </Suspense>
+        )}
+      </AnimatePresence>
+
+      {/* Compare Modal Layer */}
+      <AnimatePresence>
+        {isCompareOpen && (
+          <CompareModal
+            isOpen={isCompareOpen}
+            pokemonList={gridProps.pokemon.length > 0 ? gridProps.pokemon : defaultPokemon}
+            initialPokemon1={compareP1}
+            initialPokemon2={compareP2}
+            onClose={() => setIsCompareOpen(false)}
+          />
         )}
       </AnimatePresence>
     </div>
