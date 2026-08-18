@@ -50,8 +50,14 @@ export function PokemonModal({
   useEffect(() => {
     previousActiveElement.current = document.activeElement as HTMLElement;
 
-    // Lock body scroll
-    const originalStyle = window.getComputedStyle(document.body).overflow;
+    // Lock body scroll with padding compensation to prevent layout shift
+    const originalOverflow = window.getComputedStyle(document.body).overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
     document.body.style.overflow = 'hidden';
 
     // Focus modal container
@@ -61,7 +67,8 @@ export function PokemonModal({
 
     return () => {
       // Restore scroll and focus
-      document.body.style.overflow = originalStyle;
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
       if (previousActiveElement.current) {
         previousActiveElement.current.focus();
       }
