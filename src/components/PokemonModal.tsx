@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { X, Scale, Ruler } from 'lucide-react';
+import { X, Scale, Ruler, Swords } from 'lucide-react';
 import type { Pokemon } from '@/types/pokemon';
 import { PokemonApiError } from '@/utils/errors';
 import { typeColors } from '@/utils/typeColors';
@@ -15,6 +15,7 @@ interface PokemonModalProps {
   error: PokemonApiError | null;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
+  onCompare?: () => void;
   onClose: () => void;
   onRetry: () => void;
 }
@@ -37,6 +38,7 @@ export function PokemonModal({
   error,
   isFavorite = false,
   onToggleFavorite,
+  onCompare,
   onClose,
   onRetry,
 }: PokemonModalProps) {
@@ -178,22 +180,38 @@ export function PokemonModal({
       >
         {/* Sticky Close & Favorite Header */}
         <div className="sticky top-0 z-20 flex items-center justify-between p-4 bg-surface/80 backdrop-blur-md">
-          {pokemon && (
-            <button
-              type="button"
-              onClick={onToggleFavorite}
-              className="rounded-full bg-slate-100 p-2 text-slate-500 hover:bg-slate-200 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-red-400"
-              aria-label={isFavorite ? `Remove ${pokemon.name} from favorites` : `Add ${pokemon.name} to favorites`}
-            >
-              <PokeBall
-                key={isFavorite ? 'fav-modal-active' : 'fav-modal-inactive'}
-                variant="favorite"
-                active={isFavorite}
-                size={20}
-                className={isFavorite ? 'animate-catch' : 'text-slate-400 hover:text-red-500 dark:text-slate-500'}
-              />
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {pokemon && (
+              <button
+                type="button"
+                onClick={onToggleFavorite}
+                className="rounded-full bg-slate-100 p-2 text-slate-500 hover:bg-slate-200 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-red-400"
+                aria-label={isFavorite ? `Remove ${pokemon.name} from favorites` : `Add ${pokemon.name} to favorites`}
+              >
+                <PokeBall
+                  key={isFavorite ? 'fav-modal-active' : 'fav-modal-inactive'}
+                  variant="favorite"
+                  active={isFavorite}
+                  size={20}
+                  className={isFavorite ? 'animate-catch' : 'text-slate-400 hover:text-red-500 dark:text-slate-500'}
+                />
+              </button>
+            )}
+
+            {pokemon && onCompare && (
+              <button
+                type="button"
+                onClick={onCompare}
+                className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+                aria-label={`Compare ${pokemon.name}`}
+                title={`Compare ${pokemon.name} with another Pokémon`}
+              >
+                <Swords className="h-4 w-4 text-primary" />
+                <span className="font-heading">Compare</span>
+              </button>
+            )}
+          </div>
+
           <button
             type="button"
             onClick={onClose}

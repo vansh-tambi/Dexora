@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { primarySpring } from '@/utils/motion';
 
+import { Swords } from 'lucide-react';
+
 interface PokemonCardProps {
   id: number | string;
   name: string;
@@ -15,6 +17,7 @@ interface PokemonCardProps {
   totalStats?: number;
   isFavorite?: boolean;
   onToggleFavorite?: (e: React.MouseEvent) => void;
+  onCompare?: (e: React.MouseEvent) => void;
   onClick?: () => void;
 }
 
@@ -27,6 +30,7 @@ export const PokemonCard = memo(function PokemonCard({
   totalStats = 0,
   isFavorite = false,
   onToggleFavorite,
+  onCompare,
   onClick,
 }: PokemonCardProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -87,26 +91,43 @@ export const PokemonCard = memo(function PokemonCard({
           />
         )}
 
-        {/* Top bar: ID and Favorite toggle */}
+        {/* Top bar: ID, Compare, and Favorite toggle */}
         <div className="z-20 flex w-full items-center justify-between">
           <span className="font-heading text-xs font-bold tracking-wider text-slate-400 dark:text-slate-500">
             {formattedId}
           </span>
 
-          <button
-            type="button"
-            onClick={handleToggleFav}
-            className="rounded-full p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/60 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-            aria-label={isFavorite ? `Remove ${name} from favorites` : `Add ${name} to favorites`}
-          >
-            <PokeBall
-              key={isFavorite ? 'fav-active' : 'fav-inactive'}
-              variant="favorite"
-              active={isFavorite}
-              size={20}
-              className={isFavorite ? 'animate-catch' : 'text-slate-400 hover:text-red-500 dark:text-slate-500'}
-            />
-          </button>
+          <div className="flex items-center gap-1">
+            {onCompare && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCompare(e);
+                }}
+                className="rounded-full p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/60 focus:outline-none focus:ring-2 focus:ring-primary text-slate-400 hover:text-primary transition-colors"
+                aria-label={`Compare ${name}`}
+                title={`Compare ${name}`}
+              >
+                <Swords className="h-4 w-4" />
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleToggleFav}
+              className="rounded-full p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/60 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+              aria-label={isFavorite ? `Remove ${name} from favorites` : `Add ${name} to favorites`}
+            >
+              <PokeBall
+                key={isFavorite ? 'fav-active' : 'fav-inactive'}
+                variant="favorite"
+                active={isFavorite}
+                size={20}
+                className={isFavorite ? 'animate-catch text-red-500' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'}
+              />
+            </button>
+          </div>
         </div>
 
         {/* Artwork Area with Ambient Glow */}

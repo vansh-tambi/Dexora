@@ -16,6 +16,7 @@ interface PokemonGridProps {
   isFirstMount?: boolean;
   onRetry?: () => void;
   onCardClick?: (name: string) => void;
+  onCompareCard?: (pokemon: Pokemon) => void;
 }
 
 export function PokemonGrid({
@@ -26,6 +27,7 @@ export function PokemonGrid({
   onToggleFavorite,
   onRetry,
   onCardClick,
+  onCompareCard,
 }: PokemonGridProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
 
@@ -123,6 +125,7 @@ export function PokemonGrid({
                     totalStats={totalStats}
                     isFavorite={favorites.includes(item.name.toLowerCase())}
                     onToggleFavorite={() => onToggleFavorite(item.name)}
+                    onCompare={() => onCompareCard?.(item)}
                     onClick={() => onCardClick?.(item.name)}
                   />
                 </motion.div>

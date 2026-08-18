@@ -53,8 +53,13 @@ export function Home() {
   const [isFavoritesMode, setIsFavoritesMode] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('id-asc');
   const [isCompareOpen, setIsCompareOpen] = useState(false);
-  const [compareP1] = useState<Pokemon | null>(null);
+  const [compareP1, setCompareP1] = useState<Pokemon | null>(null);
   const [compareP2] = useState<Pokemon | null>(null);
+
+  const handleCompareCard = (pokemon: Pokemon) => {
+    setCompareP1(pokemon);
+    setIsCompareOpen(true);
+  };
 
   const applySorting = (list: Pokemon[]): Pokemon[] => {
     if (!list || list.length === 0) return [];
@@ -499,10 +504,12 @@ export function Home() {
               </div>
             </div>
 
-            {/* Controls Search Field & Sort Select */}
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              <SearchBar value={searchQuery} onSearch={handleSearch} />
+            {/* Sort Select & Search Bar Row (Sort directly to the left of SearchBar) */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
               <SortSelect value={sortBy} onChange={setSortBy} />
+              <div className="flex-1 min-w-[240px]">
+                <SearchBar value={searchQuery} onSearch={handleSearch} />
+              </div>
             </div>
           </div>
 
@@ -524,6 +531,7 @@ export function Home() {
           onRetry={gridProps.onRetry}
           isFirstMount={isFirstMount}
           onCardClick={(pokemonName) => navigate(`/pokemon/${pokemonName}`)}
+          onCompareCard={handleCompareCard}
         />
 
         {/* Load More Trigger (Default Mode Only) */}
@@ -573,6 +581,7 @@ export function Home() {
               error={modalError}
               isFavorite={isFavorite(name)}
               onToggleFavorite={() => toggleFavorite(name)}
+              onCompare={modalPokemon ? () => handleCompareCard(modalPokemon) : undefined}
               onClose={() => navigate('/')}
               onRetry={handleModalRetry}
             />
