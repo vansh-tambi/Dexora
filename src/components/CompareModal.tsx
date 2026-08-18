@@ -13,6 +13,97 @@ interface CompareModalProps {
   onClose: () => void;
 }
 
+interface SearchableSelectProps {
+  label: string;
+  value: Pokemon | null;
+  pokemonList: Pokemon[];
+  onSelect: (pokemon: Pokemon) => void;
+}
+
+function SearchablePokemonSelect({ label, value, pokemonList, onSelect }: SearchableSelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filtered = pokemonList.filter(
+    (p) =>
+      p.name.toLowerCase().includes(query.toLowerCase().trim()) ||
+      String(p.id).includes(query.trim())
+  );
+
+  return (
+    <div ref={dropdownRef} className="relative flex flex-col gap-1.5 w-full">
+      <label className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+        {label}
+      </label>
+
+      {/* Input Field */}
+      <div className="relative flex items-center">
+        <Search className="absolute left-3 h-4 w-4 text-slate-400 pointer-events-none" />
+        <input
+          type="text"
+          placeholder={value ? `#${String(value.id).padStart(3, '0')} ${value.name.toUpperCase()}` : 'Search Pokémon...'}
+          value={query}
+          onFocus={() => setIsOpen(true)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setIsOpen(true);
+          }}
+          className="w-full clip-notch-sm bg-slate-100 dark:bg-slate-800/90 pl-9 pr-3 py-2 text-xs font-bold text-slate-800 dark:text-slate-100 border border-border focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-slate-600 dark:placeholder:text-slate-300"
+        />
+      </div>
+
+      {/* Dropdown Results List */}
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 z-30 mt-1 max-h-52 overflow-y-auto rounded-xl bg-surface border border-border shadow-xl dark:bg-slate-800 scrollbar-none">
+          {filtered.length > 0 ? (
+            filtered.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => {
+                  onSelect(p);
+                  setQuery('');
+                  setIsOpen(false);
+                }}
+                className={`flex w-full items-center justify-between px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors ${
+                  value?.id === p.id ? 'bg-red-50 dark:bg-red-950/40 text-primary font-extrabold' : ''
+                }`}
+              >
+                <div className="flex items-center gap-2 capitalize">
+                  <span className="font-mono text-[10px] text-slate-400">#{String(p.id).padStart(3, '0')}</span>
+                  <span>{p.name}</span>
+                </div>
+                {p.sprites.other['official-artwork'].front_default && (
+                  <img
+                    src={p.sprites.other['official-artwork'].front_default}
+                    alt={p.name}
+                    className="h-6 w-6 object-contain"
+                  />
+                )}
+              </button>
+            ))
+          ) : (
+            <div className="px-3 py-3 text-xs text-slate-400 text-center">
+              No Pokémon found
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CompareModal({
   isOpen,
   pokemonList,
@@ -25,9 +116,6 @@ export function CompareModal({
 
   const [pokemon1, setPokemon1] = useState<Pokemon | null>(initialPokemon1 || pokemonList[0] || null);
   const [pokemon2, setPokemon2] = useState<Pokemon | null>(initialPokemon2 || pokemonList[1] || pokemonList[0] || null);
-
-  const [search1, setSearch1] = useState('');
-  const [search2, setSearch2] = useState('');
 
   useEffect(() => {
     if (initialPokemon1) setPokemon1(initialPokemon1);
@@ -60,18 +148,6 @@ export function CompareModal({
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
-
-  const filteredP1List = pokemonList.filter(
-    (p) =>
-      p.name.toLowerCase().includes(search1.toLowerCase().trim()) ||
-      String(p.id).includes(search1.trim())
-  );
-
-  const filteredP2List = pokemonList.filter(
-    (p) =>
-      p.name.toLowerCase().includes(search2.toLowerCase().trim()) ||
-      String(p.id).includes(search2.trim())
-  );
 
   const getStat = (pokemon: Pokemon | null, statName: string): number => {
     if (!pokemon) return 0;
@@ -142,79 +218,20 @@ export function CompareModal({
           </button>
         </div>
 
-        {/* Selection Pickers with Search Filter */}
+        {/* Selection Pickers with Search Combobox */}
         <div className="grid grid-cols-2 gap-4 mb-8">
-          {/* Picker 1 */}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="p1-select" className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-              Pokémon #1
-            </label>
-            <div className="relative flex items-center mb-1">
-              <Search className="absolute left-2.5 h-3.5 w-3.5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search name or ID..."
-                value={search1}
-                onChange={(e) => setSearch1(e.target.value)}
-                className="w-full clip-notch-sm bg-slate-100 dark:bg-slate-800/80 pl-8 pr-3 py-1.5 text-xs font-medium text-slate-800 dark:text-slate-100 border border-border focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            </div>
-            <select
-              id="p1-select"
-              value={pokemon1?.name || ''}
-              onChange={(e) => {
-                const found = pokemonList.find((p) => p.name === e.target.value);
-                if (found) setPokemon1(found);
-              }}
-              className="w-full clip-notch-sm bg-slate-100 dark:bg-slate-800 p-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 border border-border focus:outline-none"
-            >
-              {filteredP1List.length > 0 ? (
-                filteredP1List.map((p) => (
-                  <option key={p.id} value={p.name}>
-                    #{String(p.id).padStart(3, '0')} {p.name.toUpperCase()}
-                  </option>
-                ))
-              ) : (
-                <option value="">No Pokémon found</option>
-              )}
-            </select>
-          </div>
-
-          {/* Picker 2 */}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="p2-select" className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-              Pokémon #2
-            </label>
-            <div className="relative flex items-center mb-1">
-              <Search className="absolute left-2.5 h-3.5 w-3.5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search name or ID..."
-                value={search2}
-                onChange={(e) => setSearch2(e.target.value)}
-                className="w-full clip-notch-sm bg-slate-100 dark:bg-slate-800/80 pl-8 pr-3 py-1.5 text-xs font-medium text-slate-800 dark:text-slate-100 border border-border focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            </div>
-            <select
-              id="p2-select"
-              value={pokemon2?.name || ''}
-              onChange={(e) => {
-                const found = pokemonList.find((p) => p.name === e.target.value);
-                if (found) setPokemon2(found);
-              }}
-              className="w-full clip-notch-sm bg-slate-100 dark:bg-slate-800 p-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 border border-border focus:outline-none"
-            >
-              {filteredP2List.length > 0 ? (
-                filteredP2List.map((p) => (
-                  <option key={p.id} value={p.name}>
-                    #{String(p.id).padStart(3, '0')} {p.name.toUpperCase()}
-                  </option>
-                ))
-              ) : (
-                <option value="">No Pokémon found</option>
-              )}
-            </select>
-          </div>
+          <SearchablePokemonSelect
+            label="Pokémon #1"
+            value={pokemon1}
+            pokemonList={pokemonList}
+            onSelect={setPokemon1}
+          />
+          <SearchablePokemonSelect
+            label="Pokémon #2"
+            value={pokemon2}
+            pokemonList={pokemonList}
+            onSelect={setPokemon2}
+          />
         </div>
 
         {/* Side-by-side Hero Showcase */}
